@@ -55,19 +55,25 @@ def run_sir_simulation_with_history( # Renamed for clarity
         is_ss = (i in superspreader_indices)
         individuals.append(Individual(i, L, is_superspreader=is_ss))
 
-    infected_indices = random.sample(range(N), min(initial_infected_count, N))
+    # Initial infection
+    # Ensure initial_infected_count does not exceed N
+    actual_initial_infected_count = min(initial_infected_count, N)
+    infected_indices = random.sample(range(N), actual_initial_infected_count)
     for idx in infected_indices:
         individuals[idx].state = INFECTED
+
+    # Initialize running counts
+    current_S = N - actual_initial_infected_count
+    current_I = actual_initial_infected_count
+    current_R = 0
 
     S_counts, I_counts, R_counts = [], [], []
     time_points = []
     simulation_history = [] # To store state of all individuals at each step
-
+    
+    t = 0 # Initialize t for potential early exit
     for t in range(max_time_steps):
-        current_S = sum(1 for ind in individuals if ind.state == SUSCEPTIBLE)
-        current_I = sum(1 for ind in individuals if ind.state == INFECTED)
-        current_R = sum(1 for ind in individuals if ind.state == RECOVERED)
-
+        # Save current counts (already updated)
         S_counts.append(current_S)
         I_counts.append(current_I)
         R_counts.append(current_R)
@@ -123,12 +129,22 @@ def run_sir_simulation_with_history( # Renamed for clarity
                     if np.random.rand() < prob_infection:
                         if s_idx not in newly_infected_in_this_step_indices:
                              newly_infected_in_this_step_indices.append(s_idx)
+                             # current_S -= 1 # Decrement S when added to newly_infected list
 
+            # Recovery attempt for the current infector
             if np.random.rand() < gamma_recovery_prob:
                 individuals[i_idx].state = RECOVERED
+                current_I -= 1
+                current_R += 1
         
+        # Update states of newly infected individuals and counts
         for ni_idx in newly_infected_in_this_step_indices:
-            individuals[ni_idx].state = INFECTED
+            # Check if still susceptible (could have been marked for infection multiple times in one step by different infectors)
+            # but only transition once and update counts once.
+            if individuals[ni_idx].state == SUSCEPTIBLE:
+                individuals[ni_idx].state = INFECTED
+                current_S -= 1
+                current_I += 1
 
     # Add final state to history
     final_step_snapshot = []
@@ -141,12 +157,12 @@ def run_sir_simulation_with_history( # Renamed for clarity
         })
     simulation_history.append(final_step_snapshot)
 
-    # Add final SIR counts if loop didn't break
-    if current_I > 0 or t < max_time_steps -1 :
-        S_counts.append(sum(1 for ind in individuals if ind.state == SUSCEPTIBLE))
-        I_counts.append(sum(1 for ind in individuals if ind.state == INFECTED))
-        R_counts.append(sum(1 for ind in individuals if ind.state == RECOVERED))
-        time_points.append(t + 1 if current_I > 0 else t + 1) # Ensure time points align
+    # Append final SIR counts
+    # If loop completed fully or broke early, the counts for the *next* time step (t or t+1) are these.
+    S_counts.append(current_S)
+    I_counts.append(current_I)
+    R_counts.append(current_R)
+    time_points.append(t + 1) # t is the last completed step, so this is the state *after* step t
 
     return S_counts, I_counts, R_counts, time_points, simulation_history
 
