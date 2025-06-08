@@ -48,6 +48,7 @@ def run_sir_simulation(
     lambda_ss_fraction=0.1, 
     superspreader_model_type="hub",  
     initial_infected_count=1,
+    initial_infected_pos="bottom",
     max_time_steps=100,
     verbose=False
 ):
@@ -86,9 +87,9 @@ def run_sir_simulation(
         individuals[idx].state = INFECTED
         # Paper: "An initial-infected individual is placed on the bottom of the system"
         # For simplicity, we can just pick randomly or first ones.
-        # If specific placement is needed:
-        # individuals[idx].pos = np.array([L/2, r0_normal * 0.1]) # Example: bottom center-ish
-
+        if initial_infected_pos == "bottom":
+            individuals[idx].pos = min(individuals, key=lambda ind: ind.pos[1]).pos.copy()
+          
     # Initialize running counts
     current_S = N - initial_infected_count
     current_I = initial_infected_count
