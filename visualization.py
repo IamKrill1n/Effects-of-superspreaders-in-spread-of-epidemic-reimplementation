@@ -274,26 +274,24 @@ if __name__ == "__main__":
     # plt.show()
 
     # Visualize the simulation
-    # print(f"Starting animation for Hub model... (Close plot window to continue if script hangs)")
-    # # Ensure history has enough frames
-    # if history_hub and len(history_hub) > 1:
-    #      # If you want to save the animation:
-    #     # ani_hub.save("sir_hub_animation.gif", writer='pillow', fps=5) # or 'ffmpeg' for mp4
-    #     ani_hub = visualize_simulation(history_hub, L_val, N_pop, model_name="Hub Model")
-
-    # else:
-    #     print("History is too short to animate.")
+    print(f"Starting animation for Hub model... (Close plot window to continue if script hangs)")
+    # Ensure history has enough frames
+    if history_hub and len(history_hub) > 1:
+        ani_hub = visualize_simulation(history_hub, L_val, N_pop, model_name="Hub Model")
+        ani_hub.save("fig/sir_hub_animation.gif", writer='pillow', fps=5)
+    else:
+        print("History is too short to animate.")
 # 
     # Example for "strong" model (optional)
-    S_s, I_s, R_s, t_s, history_strong = run_sir_simulation_with_history(
-        N=N_pop, L=L_val, r0_normal=r0_normal_val,
-        w0_base=1.0, alpha_normal=2.0, gamma_recovery_prob=0.2,
-        lambda_ss_fraction=0.05,
-        superspreader_model_type="strong",
-        initial_infected_count=2,
-        max_time_steps=50,
-        verbose=False
-    )
-    if history_strong and len(history_strong) > 1:
-        ani_strong = visualize_simulation(history_strong, L_val, N_pop, model_name="Strong Infectiousness Model")
-        ani_strong.save("sir_strong_animation.gif", writer='pillow', fps=5)
+    # S_s, I_s, R_s, t_s, history_strong = run_sir_simulation_with_history(
+    #     N=N_pop, L=L_val, r0_normal=r0_normal_val,
+    #     w0_base=1.0, alpha_normal=2.0, gamma_recovery_prob=0.2,
+    #     lambda_ss_fraction=0.05,
+    #     superspreader_model_type="strong",
+    #     initial_infected_count=2,
+    #     max_time_steps=50,
+    #     verbose=False
+    # )
+    # if history_strong and len(history_strong) > 1:
+    #     ani_strong = visualize_simulation(history_strong, L_val, N_pop, model_name="Strong Infectiousness Model")
+    #     ani_strong.save("fig/sir_strong_animation.gif", writer='pillow', fps=5)
