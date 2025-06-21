@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import random
-import copy
 
 # --- (Individual class, distance_periodic, get_infection_probability as before) ---
 SUSCEPTIBLE = 0
