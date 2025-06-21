@@ -375,3 +375,68 @@ def visualize_simulation(history, L, N, model_name=""):
     plt.tight_layout(rect=[0, 0, 0.85, 1]) # Adjust for legend
     plt.show()
     return ani # Return animation object so it can be saved if needed
+
+def visualize_simulation_at_step(history, L, N, step, model_name="", save_path=None):
+    """
+    Visualize the simulation at a specific time step.
+    """
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    if step < 0 or step >= len(history):
+        raise ValueError(f"Step {step} is out of range (0 to {len(history)-1})")
+
+    snapshot = history[step]
+
+    s_pos, i_pos, r_pos = [], [], []
+    s_ss_pos, i_ss_pos, r_ss_pos = [], [], []
+
+    num_s, num_i, num_r = 0, 0, 0
+
+    for ind_data in snapshot:
+        pos = ind_data['pos']
+        state = ind_data['state']
+        is_ss = ind_data['is_superspreader']
+
+        if state == 0:  # SUSCEPTIBLE
+            num_s += 1
+            if is_ss: s_ss_pos.append(pos)
+            else: s_pos.append(pos)
+        elif state == 1:  # INFECTED
+            num_i += 1
+            if is_ss: i_ss_pos.append(pos)
+            else: i_pos.append(pos)
+        elif state == 2:  # RECOVERED
+            num_r += 1
+            if is_ss: r_ss_pos.append(pos)
+            else: r_pos.append(pos)
+
+    fig, ax = plt.subplots(figsize=(8, 8))
+    ax.set_xlim(0, L)
+    ax.set_ylim(0, L)
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_aspect('equal', adjustable='box')
+
+    # Normal individuals
+    if s_pos:
+        ax.scatter(*np.array(s_pos).T, s=30, color='blue', alpha=0.7, label='Susceptible')
+    if i_pos:
+        ax.scatter(*np.array(i_pos).T, s=30, color='red', alpha=0.7, label='Infected')
+    if r_pos:
+        ax.scatter(*np.array(r_pos).T, s=30, color='grey', alpha=0.7, label='Recovered')
+    # Superspreaders
+    if s_ss_pos:
+        ax.scatter(*np.array(s_ss_pos).T, s=50, facecolors='blue', edgecolors='black', linewidth=1.5, alpha=0.9, label='Susceptible (SS)')
+    if i_ss_pos:
+        ax.scatter(*np.array(i_ss_pos).T, s=50, facecolors='red', edgecolors='black', linewidth=1.5, alpha=0.9, label='Infected (SS)')
+    if r_ss_pos:
+        ax.scatter(*np.array(r_ss_pos).T, s=50, facecolors='grey', edgecolors='black', linewidth=1.5, alpha=0.9, label='Recovered (SS)')
+
+    ax.set_title(f"{model_name} - Time Step: {step}\nS: {num_s}, I: {num_i}, R: {num_r} (Total: {N})")
+    ax.legend(loc='upper right', bbox_to_anchor=(1.25, 1))
+    plt.tight_layout(rect=[0, 0, 0.85, 1])
+    if save_path:
+        plt.savefig(save_path)
+    plt.show()
+    return fig, ax  # Return figure and axis for further manipulation if needed
